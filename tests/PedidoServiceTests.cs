@@ -75,13 +75,28 @@ public sealed class PedidoServiceTests
             new PedidoService(client).ConsultarPedidoAsync(id!, CancellationToken.None));
     }
 
-    [Fact]
-    public async Task ConsultarPedidoRetornaConteudoAsync()
+    [Theory]
+    [InlineData(".")]
+    [InlineData("..")]
+    public async Task ConsultarPedidoRejeitaSegmentosRelativosSemEnviarRequisicaoAsync(string id)
     {
         using var handler = new ResponseHandler();
         using var client = new HttpClient(handler) { BaseAddress = new Uri("https://example.invalid/") };
-        Assert.Equal("pedido", await new PedidoService(client).ConsultarPedidoAsync("123", CancellationToken.None));
-        Assert.Equal("/pedidos/123", handler.RequestPath);
+        var exception = await Assert.ThrowsAsync<ArgumentException>(() =>
+            new PedidoService(client).ConsultarPedidoAsync(id, CancellationToken.None));
+        Assert.Equal("pedidoId", exception.ParamName);
+        Assert.Null(handler.RequestPath);
+    }
+
+    [Theory]
+    [InlineData("123")]
+    [InlineData("pedido.123")]
+    public async Task ConsultarPedidoRetornaConteudoAsync(string id)
+    {
+        using var handler = new ResponseHandler();
+        using var client = new HttpClient(handler) { BaseAddress = new Uri("https://example.invalid/") };
+        Assert.Equal("pedido", await new PedidoService(client).ConsultarPedidoAsync(id, CancellationToken.None));
+        Assert.Equal("/pedidos/" + id, handler.RequestPath);
     }
 
     [Fact]

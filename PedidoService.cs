@@ -27,6 +27,11 @@ public sealed class PedidoService
     public async Task<string> ConsultarPedidoAsync(string pedidoId, CancellationToken cancellationToken)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(pedidoId);
+        if (pedidoId is "." or "..")
+        {
+            throw new ArgumentException("O ID do pedido não pode ser um segmento relativo de URI.", nameof(pedidoId));
+        }
+
         using var response = await httpClient.GetAsync(
             "pedidos/" + Uri.EscapeDataString(pedidoId), cancellationToken);
         response.EnsureSuccessStatusCode();
