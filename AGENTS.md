@@ -1,4 +1,4 @@
-﻿# Regras de desenvolvimento para teste
+# Regras de desenvolvimento para teste
 
 Estas regras se aplicam a todo o repositório.
 
@@ -27,6 +27,9 @@ Estas regras se aplicam a todo o repositório.
 - Correções de bugs devem incluir um teste que reproduza o problema.
 
 ## Orientações para revisão de PRs
+
+- Escreva todos os comentários de revisão de PRs em português do Brasil (pt-BR), incluindo títulos dos apontamentos, explicações, sugestões de correção e resumo da revisão, mesmo quando o código ou a descrição da PR estiverem em inglês.
+- Preserve nomes de classes, métodos, variáveis, APIs, caminhos e mensagens de erro citadas no idioma original.
 
 - Identifique violações destas regras nas linhas adicionadas ou alteradas.
 - Explique o problema e sugira uma correção concreta.
