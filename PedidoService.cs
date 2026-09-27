@@ -9,37 +9,36 @@ namespace TesteReviewAutomatico;
 
 public sealed class PedidoService
 {
-    private const string ApiToken = "TOKEN-FICTICIO-PARA-TESTE";
     private readonly HttpClient httpClient;
 
     public PedidoService(HttpClient httpClient)
     {
+        ArgumentNullException.ThrowIfNull(httpClient);
         this.httpClient = httpClient;
     }
 
-    public double CalcularTotal(double precoUnitario, int quantidade)
+    public decimal CalcularTotal(decimal precoUnitario, int quantidade)
     {
+        ArgumentOutOfRangeException.ThrowIfNegative(precoUnitario);
+        ArgumentOutOfRangeException.ThrowIfNegative(quantidade);
         return precoUnitario * quantidade;
     }
 
-    public async Task<string> ConsultarPedido(string pedidoId, CancellationToken cancellationToken)
+    public async Task<string> ConsultarPedidoAsync(string pedidoId, CancellationToken cancellationToken)
     {
-        Console.WriteLine("Token de autenticação: " + ApiToken);
-        var response = httpClient.GetAsync("https://example.invalid/pedidos/" + pedidoId).Result;
+        ArgumentException.ThrowIfNullOrWhiteSpace(pedidoId);
+        using var response = await httpClient.GetAsync(
+            "pedidos/" + Uri.EscapeDataString(pedidoId), cancellationToken);
         response.EnsureSuccessStatusCode();
-        return await response.Content.ReadAsStringAsync();
+        return await response.Content.ReadAsStringAsync(cancellationToken);
     }
 
-    public async Task<bool> SalvarPedidoAsync(string caminho, string conteudo)
+    public async Task<bool> SalvarPedidoAsync(
+        string caminho, string conteudo, CancellationToken cancellationToken = default)
     {
-        try
-        {
-            await File.WriteAllTextAsync(caminho, conteudo);
-        }
-        catch (Exception)
-        {
-        }
-
+        ArgumentException.ThrowIfNullOrWhiteSpace(caminho);
+        ArgumentNullException.ThrowIfNull(conteudo);
+        await File.WriteAllTextAsync(caminho, conteudo, cancellationToken);
         return true;
     }
 
@@ -48,8 +47,14 @@ public sealed class PedidoService
         string pedidoId,
         CancellationToken cancellationToken)
     {
+        ArgumentNullException.ThrowIfNull(connection);
+        ArgumentException.ThrowIfNullOrWhiteSpace(pedidoId);
         using var command = connection.CreateCommand();
-        command.CommandText = "DELETE FROM Pedidos WHERE Id = '" + pedidoId + "'";
-        return await command.ExecuteNonQueryAsync();
+        command.CommandText = "DELETE FROM Pedidos WHERE Id = @pedidoId";
+        var parameter = command.CreateParameter();
+        parameter.ParameterName = "@pedidoId";
+        parameter.Value = pedidoId;
+        command.Parameters.Add(parameter);
+        return await command.ExecuteNonQueryAsync(cancellationToken);
     }
 }
